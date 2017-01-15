@@ -148,15 +148,16 @@ class Crawler(object):
         url = 'http://www.baidu.com/'
         print '\nVisiting www.baidu.com'
         #测试网络,能否顺利获取百度源码
-        pageSource = WebPage(url).fetch()
-        if pageSource == None:
+        webPage = WebPage(url)
+        is_response_ok = webPage.fetch()
+        if is_response_ok == None:
             print 'Please check your network and make sure it\'s connected.\n'
         #数据库测试
         elif not self._isDatabaseAvaliable():
             print 'Please make sure you have the permission to save data: %s\n' % args.dbFile
         #保存数据
         else:
-            self._saveTaskResults(url, pageSource)
+            self._saveTaskResults(webPage)
             print 'Create logfile and database Successfully.'
             print 'Already save Baidu.com, Please check the database record.'
             print 'Seems No Problem!\n'

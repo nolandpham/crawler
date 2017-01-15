@@ -27,7 +27,7 @@ class WebPage(object):
         '''获取html源代码'''
         try:
             #设置了prefetch=False，当访问response.text时才下载网页内容,避免下载非html文件
-            response = requests.get(self.url, headers=self.headers, timeout=10, prefetch=False, proxies=proxies)
+            response = requests.get(self.url, headers=self.headers, timeout=10, proxies=proxies)
             if self._isResponseAvaliable(response):
                 self._handleEncoding(response)
                 self.pageSource = response.text
@@ -36,6 +36,7 @@ class WebPage(object):
                 log.warning('Page not avaliable. Status code:%d URL: %s \n' % (
                     response.status_code, self.url) )
         except Exception,e:
+            print e
             if retry>0: #超时重试
                 return self.fetch(retry-1)
             else:
@@ -64,7 +65,7 @@ class WebPage(object):
     def _isResponseAvaliable(self, response):
         #网页为200时再获取源码, 只选取html页面。 
         if response.status_code == requests.codes.ok:
-            if 'html' in response.headers['Content-Type']:
+            if 'text/html' in response.headers['Content-Type']:
                 return True
         return False
 
@@ -74,7 +75,8 @@ class WebPage(object):
         #会使用RFC2616标准，指定编码为ISO-8859-1
         #因此需要用网页源码meta标签中的charset去判断编码
         if response.encoding == 'ISO-8859-1':
-            charset_re = re.compile("((^|;)\s*charset\s*=)([^\"']*)", re.M)
-            charset=charset_re.search(response.text) 
-            charset=charset and charset.group(3) or None 
+            # charset_re = re.compile("((^|;)\s*charset\s*=)([^\"']*)", re.M)
+            charset_re = re.compile("(?<=charset=)[a-zA-Z0-9-'\"]*", re.M)
+            charset=charset_re.search(response.text)
+            charset=charset and charset.group(0) or None 
             response.encoding = charset
